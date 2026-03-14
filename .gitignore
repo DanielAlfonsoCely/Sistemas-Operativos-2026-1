@@ -1,0 +1,2 @@
+#Ignorar archivos TSV de datasets
+*.tsv
