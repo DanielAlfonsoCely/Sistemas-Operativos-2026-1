@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "Hash.h"
+#include "imdb.h"
 
 char linea [4096]; // Variable global para almacenar cada línea del archivo TSV
 
@@ -9,7 +9,7 @@ char linea [4096]; // Variable global para almacenar cada línea del archivo TSV
 
 
 // retorna 1 si leyó bien, 0 si línea malformada o fin de archivo
-int leer_linea_tsv(FILE *archivo, struct Movie *pelicula){ 
+int leer_linea_tsv(FILE *archivo, Movie *pelicula){ 
 
     
     if (fgets(linea, sizeof(linea), archivo) == NULL) {
@@ -59,7 +59,7 @@ int leer_linea_tsv(FILE *archivo, struct Movie *pelicula){
 }
 
 // escribe la struct y actualiza el hash
-void escribir_pelicula_bin(struct Movie *pelicula, FILE *archivo_bin){
+void escribir_pelicula_bin(Movie *pelicula, FILE *archivo_bin){
 
     long offset = ftell(archivo_bin);
         int indice = calcular_hash(pelicula->primaryTitle);
@@ -67,7 +67,7 @@ void escribir_pelicula_bin(struct Movie *pelicula, FILE *archivo_bin){
         pelicula->next_offset = hash_table[indice];  // apunta al anterior primero
         hash_table[indice] = offset;                // hash apunta al nuevo
 
-        fwrite(pelicula, sizeof(struct Movie), 1, archivo_bin);
+        fwrite(pelicula, sizeof(Movie), 1, archivo_bin);
 
 }
 
@@ -89,7 +89,7 @@ void convertir_tsv_a_binario(char *archivo_tsv, char *archivo_bin){
     fgets(linea, sizeof(linea), file);  // Leer la primera línea (cabecera) y descartarla
 
 
-    struct Movie *pelicula = malloc(sizeof(struct Movie)); // Reservar memoria para la película a leer
+    Movie *pelicula = malloc(sizeof(Movie)); // Reservar memoria para la película a leer
 
     while (leer_linea_tsv(file, pelicula)) { // Leer cada línea del archivo TSV y procesarla
         escribir_pelicula_bin(pelicula, archivo_binario);
@@ -103,7 +103,7 @@ void convertir_tsv_a_binario(char *archivo_tsv, char *archivo_bin){
 
 
 
-void insertar_pelicula_en_binario(struct Movie pelicula, char *archivo_hash_bin){ 
+void insertar_pelicula_en_binario(Movie pelicula, char *archivo_hash_bin){ 
 
     FILE *archivo_bin = fopen(archivo_hash_bin, "ab"); // Abrir en modo append para agregar al final del archivo
     if (archivo_bin == NULL) {
@@ -120,7 +120,7 @@ void insertar_pelicula_en_binario(struct Movie pelicula, char *archivo_hash_bin)
     hash_table[indice] = offset;
     
     // escribir
-    fwrite(&pelicula, sizeof(struct Movie), 1, archivo_bin);
+    fwrite(&pelicula, sizeof(Movie), 1, archivo_bin);
     
     // actualizar hash.bin
     guardar_hash_en_binario("hash.bin");

@@ -1,4 +1,4 @@
-#include "Hash.h"
+#include "imdb.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -49,7 +49,7 @@ void cargar_hash_desde_binario(char *archivo_bin){
 }
 
 // Función para imprimir los detalles de una película
-void imprimir_pelicula(struct Movie pelicula) {
+void imprimir_pelicula( Movie pelicula) {
     printf("Title Type: %s\n", pelicula.titleType);
     printf("Primary Title: %s\n", pelicula.primaryTitle);
     printf("Original Title: %s\n", pelicula.originalTitle);
