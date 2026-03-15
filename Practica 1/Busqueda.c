@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-
+// Función para buscar una película por su título principal utilizando la tabla hash
 struct Movie buscar_por_nombre(char *nombre , FILE *archivo_bin) {
 
     
@@ -14,13 +14,15 @@ struct Movie buscar_por_nombre(char *nombre , FILE *archivo_bin) {
         return vacia;
     }
 
+    // Calcular el índice del hash para el nombre de la película y buscar en la tabla hash
     unsigned int indice = calcular_hash(nombre);
-    long offset = hash_table[indice];
+    long offset = hash_table[indice]; 
 
+    // Recorrer la cadena de offsets en la tabla hash para encontrar la película con el título principal dado
     while (offset != -1) {
-        fseek(archivo_bin, offset, SEEK_SET);
+        fseek(archivo_bin, offset, SEEK_SET); // Mover el puntero del archivo al offset actual, (donde se encuentra la struct de la película)
         struct Movie pelicula;
-        fread(&pelicula, sizeof(struct Movie), 1, archivo_bin);
+        fread(&pelicula, sizeof(struct Movie), 1, archivo_bin); // Leer la pelicula en la posición actual del archivo, y almacenarla en la variable pelicula
 
         if (strcmp(pelicula.primaryTitle, nombre) == 0) {
             return pelicula; // Retorna la película encontrada
@@ -34,9 +36,10 @@ struct Movie buscar_por_nombre(char *nombre , FILE *archivo_bin) {
     return vacia;
 }
 
+// Función para buscar una película por múltiples filtros, utilizando la tabla hash para optimizar la búsqueda
 struct Movie buscar_por_filtros(struct Movie filtros, FILE *archivo_bin){
     //Si un string es = 'N' se ignora ese filtro, si un entero es -1 se ignora ese filtro
-    //Se recorre el archivo segun el hash de la pelicula "filtro"
+    
     if (archivo_bin == NULL) {
         perror("Error al abrir el archivo binario");
         struct Movie vacia;
@@ -44,27 +47,28 @@ struct Movie buscar_por_filtros(struct Movie filtros, FILE *archivo_bin){
         return vacia;
     }
 
-   
+    
     struct Movie pelicula;
 
     unsigned int indice = calcular_hash(filtros.primaryTitle);
     long offset = hash_table[indice];
 
+    //Se recorre el archivo segun el hash de la pelicula "filtros"
     while (offset != -1) {
-        fseek(archivo_bin, offset, SEEK_SET);
-        fread(&pelicula, sizeof(struct Movie), 1, archivo_bin);
+        fseek(archivo_bin, offset, SEEK_SET); // Mover el puntero del archivo al offset actual, (donde se encuentra la struct de la película)
+        fread(&pelicula, sizeof(struct Movie), 1, archivo_bin);// Leer la pelicula en la posición actual del archivo, y almacenarla en la variable pelicula
 
         int coincide = 1; // Variable para verificar si la película coincide con los filtros
 
         // Verificar cada filtro, si el filtro no es 'N' o -1, se compara con el valor de la película, si no coincide se marca como no coincidente
         
-        if (filtros.titleType[0] != 'N' && strcmp(pelicula.titleType, filtros.titleType) != 0) {
+        if (filtros.titleType[0] != 'N' && strcmp(pelicula.titleType, filtros.titleType) != 0) { 
             coincide = 0;
         }
         if (filtros.primaryTitle[0] != 'N' && strcmp(pelicula.primaryTitle, filtros.primaryTitle) != 0) {
             coincide = 0;
         }
-        if (filtros.originalTitle[0] != 'N' && strcmp(pelicula.originalTitle, filtros.originalTitle) != 0) {
+        if (filtros.originalTitle[0] != 'N' && strcmp(pelicula.originalTitle, filtros.originalTitle) != 0) {// Si el filtro de originalTitle no es 'N' y no coincide con el originalTitle de la película, se marca como no coincidente
             coincide = 0;
         }
         if (filtros.isAdult != -1 && pelicula.isAdult != filtros.isAdult) {
@@ -76,8 +80,8 @@ struct Movie buscar_por_filtros(struct Movie filtros, FILE *archivo_bin){
         if (filtros.runtimeMinutes != -1 && pelicula.runtimeMinutes != filtros.runtimeMinutes) {
             coincide = 0;
         }
-        if (filtros.genres[0] != 'N' && strstr(pelicula.genres, filtros.genres) == NULL ) { 
-            coincide = 0; // Se verifica si el género de la película contiene el género del filtro, si no coincide se marca como no coincidente
+        if (filtros.genres[0] != 'N' && strstr(pelicula.genres, filtros.genres) == NULL ) { // Se verifica si el género de la película contiene el género del filtro, si no coincide se marca como no coincidente
+            coincide = 0; 
         }
 
         if (coincide == 1) {

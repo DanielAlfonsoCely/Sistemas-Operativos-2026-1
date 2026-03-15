@@ -24,30 +24,7 @@ unsigned int calcular_hash(char *str){
     return hash % HASH_SIZE;
 }
 
-// //void insertar_ordenado(long offset, char *nombre){
-//     int index = calcular_hash(nombre);
-//     struct Nodo *nuevo = malloc(sizeof(struct Nodo)); // Crear nodo con malloc para evitar se borre al salir de la función
-//     nuevo->offset = offset;
-//     strncpy(nuevo->nombre, nombre, 127); // Copiar el nombre al nodo, no se puede asignar directamente porque es un arreglo de caracteres destino, origen
-//     nuevo->nombre[127] = '\0'; // Asegurar que el nombre termine con un caracter nulo
-//     struct Nodo *actual = hash_table[index];
-//     if(hash_table[index] == NULL) { // Si el índice esta vacio, se inserta el nuevo nodo
-//         nuevo -> siguiente = NULL;
-//         hash_table[index] = nuevo;
-//     }// Si el nuevo nodo es menor que el nodo actual, se inserta al inicio de la lista
-//     else if (strcmp(nuevo->nombre, actual->nombre) < 0) {
-//         nuevo -> siguiente = actual;
-//         hash_table[index] = nuevo;
-//     } 
-//     else { // Si el nuevo nodo es mayor que el nodo actual, se recorre la lista hasta encontrar la posición correcta para insertar el nuevo nodo
-//         while ( actual->siguiente != NULL &&  strcmp(nuevo->nombre, actual->siguiente->nombre) > 0)
-//         {
-//             actual = actual->siguiente;
-//         }
-//         nuevo->siguiente = actual->siguiente;
-//         actual->siguiente = nuevo;
-//     }
-// }
+
 
 //archivo para guardar el hash de los offsets en el archivo binario
 void guardar_hash_en_binario(char *archivo_bin){
@@ -60,7 +37,7 @@ void guardar_hash_en_binario(char *archivo_bin){
     fclose(archivo);
 }
 
-
+//archivo para cargar el hash del archivo binario a memoria ram
 void cargar_hash_desde_binario(char *archivo_bin){
     FILE *archivo = fopen(archivo_bin, "rb");
     if (archivo == NULL) {
@@ -71,6 +48,7 @@ void cargar_hash_desde_binario(char *archivo_bin){
     fclose(archivo);
 }
 
+// Función para imprimir los detalles de una película
 void imprimir_pelicula(struct Movie pelicula) {
     printf("Title Type: %s\n", pelicula.titleType);
     printf("Primary Title: %s\n", pelicula.primaryTitle);
@@ -82,17 +60,6 @@ void imprimir_pelicula(struct Movie pelicula) {
 }
 
 
-// //long buscar_nombre(char *nombre){
-//     int index = calcular_hash(nombre);
-//     struct Nodo *actual = hash_table[index];
-//     while (actual != NULL) {
-//         if (strcmp(actual->nombre, nombre) == 0) { // Si se encuentra el nombre, se retorna el offset
-//             return actual->offset;
-//         }
-//         actual = actual->siguiente;
-//     }
-//     return -1; // No encontrado
-// }
 
 
 
