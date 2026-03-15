@@ -1,2 +1,5 @@
 #Ignorar archivos TSV de datasets
 *.tsv
+*.tsv.gz
+#Ignorar archivos binarios generados
+*.bin
