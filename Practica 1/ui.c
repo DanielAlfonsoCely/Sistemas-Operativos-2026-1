@@ -63,7 +63,11 @@ void agregarPelicula(Shared_Memory *shm) {
             printf(RED "Este campo no puede estar vacio.\n" RESET);
         } else {
             nueva.startYear = atoi(anio);
-            break;
+            if (nueva.startYear <= 0) {
+                printf(RED "El anio debe ser un entero positivo.\n" RESET);
+            } else {
+                break;
+            }
         }
     } while (1);
 
@@ -72,7 +76,15 @@ void agregarPelicula(Shared_Memory *shm) {
     char duracion[8];
     fgets(duracion, sizeof(duracion), stdin);
     duracion[strcspn(duracion, "\n")] = '\0';
-    nueva.runtimeMinutes = (strlen(duracion) == 0) ? -1 : atoi(duracion);
+    if (strlen(duracion) == 0) {
+        nueva.runtimeMinutes = -1;
+    } else {
+        nueva.runtimeMinutes = atoi(duracion);
+        if (nueva.runtimeMinutes <= 0) {
+            printf(RED "Duracion invalida, se guardara como N/A.\n" RESET);
+            nueva.runtimeMinutes = -1;
+        }
+    }
 
     do {
         printf(YELLOW "Generos (Action,Drama,...): " RESET);
