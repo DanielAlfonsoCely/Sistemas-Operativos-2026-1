@@ -16,54 +16,79 @@
 void agregarPelicula(Shared_Memory *shm) {
     Movie nueva;
 
-    printf(YELLOW "Titulo principal: " RESET);
-    fgets(nueva.primaryTitle, sizeof(nueva.primaryTitle), stdin);
-    nueva.primaryTitle[strcspn(nueva.primaryTitle, "\n")] = '\0'; // strcspn encuentra el \n y lo reemplaza con \0
+    /* Campos obligatorios — loop hasta que el usuario ingrese algo */
+    do {
+        printf(YELLOW "Titulo principal: " RESET);
+        fgets(nueva.primaryTitle, sizeof(nueva.primaryTitle), stdin);
+        nueva.primaryTitle[strcspn(nueva.primaryTitle, "\n")] = '\0';
+        if (strlen(nueva.primaryTitle) == 0)
+            printf(RED "Este campo no puede estar vacio.\n" RESET);
+    } while (strlen(nueva.primaryTitle) == 0);
 
-    printf(YELLOW "Titulo original: " RESET);
-    fgets(nueva.originalTitle, sizeof(nueva.originalTitle), stdin);
-    nueva.originalTitle[strcspn(nueva.originalTitle, "\n")] = '\0';
+    do {
+        printf(YELLOW "Titulo original: " RESET);
+        fgets(nueva.originalTitle, sizeof(nueva.originalTitle), stdin);
+        nueva.originalTitle[strcspn(nueva.originalTitle, "\n")] = '\0';
+        if (strlen(nueva.originalTitle) == 0)
+            printf(RED "Este campo no puede estar vacio.\n" RESET);
+    } while (strlen(nueva.originalTitle) == 0);
 
-    printf(YELLOW "Tipo (movie/tvseries/short/...): " RESET);
-    fgets(nueva.titleType, sizeof(nueva.titleType), stdin);
-    nueva.titleType[strcspn(nueva.titleType, "\n")] = '\0';
+    do {
+        printf(YELLOW "Tipo (movie/tvseries/short/...): " RESET);
+        fgets(nueva.titleType, sizeof(nueva.titleType), stdin);
+        nueva.titleType[strcspn(nueva.titleType, "\n")] = '\0';
+        if (strlen(nueva.titleType) == 0)
+            printf(RED "Este campo no puede estar vacio.\n" RESET);
+    } while (strlen(nueva.titleType) == 0);
 
-    printf(YELLOW "Es adulto? (1/0): " RESET);
-    char adulto[4];
-    fgets(adulto, sizeof(adulto), stdin);
-    nueva.isAdult = atoi(adulto);
+    do {
+        printf(YELLOW "Es adulto? (1/0): " RESET);
+        char adulto[4];
+        fgets(adulto, sizeof(adulto), stdin);
+        adulto[strcspn(adulto, "\n")] = '\0';
+        if (strlen(adulto) == 0) {
+            printf(RED "Este campo no puede estar vacio.\n" RESET);
+        } else {
+            nueva.isAdult = atoi(adulto);
+            break;
+        }
+    } while (1);
 
-    printf(YELLOW "Anio de inicio (N si no aplica): " RESET);
-    char anio[8];
-    fgets(anio, sizeof(anio), stdin);
-    anio[strcspn(anio, "\n")] = '\0';
-    if (strcmp(anio, "N") == 0) {
-        nueva.startYear = -1;
-    } else {
-        nueva.startYear = atoi(anio);
-    }
+    do {
+        printf(YELLOW "Anio de inicio: " RESET);
+        char anio[8];
+        fgets(anio, sizeof(anio), stdin);
+        anio[strcspn(anio, "\n")] = '\0';
+        if (strlen(anio) == 0) {
+            printf(RED "Este campo no puede estar vacio.\n" RESET);
+        } else {
+            nueva.startYear = atoi(anio);
+            break;
+        }
+    } while (1);
 
-    printf(YELLOW "Duracion en minutos (N si no aplica): " RESET);
+    /* Duracion — opcional, Enter = N/A */
+    printf(YELLOW "Duracion en minutos (Enter si no aplica): " RESET);
     char duracion[8];
     fgets(duracion, sizeof(duracion), stdin);
     duracion[strcspn(duracion, "\n")] = '\0';
-    if (strcmp(duracion, "N") == 0) {
-        nueva.runtimeMinutes = -1;
-    } else {
-        nueva.runtimeMinutes = atoi(duracion);
-    }
+    nueva.runtimeMinutes = (strlen(duracion) == 0) ? -1 : atoi(duracion);
 
-    printf(YELLOW "Generos (Action,Drama,...): " RESET);
-    fgets(nueva.genres, sizeof(nueva.genres), stdin);
-    nueva.genres[strcspn(nueva.genres, "\n")] = '\0';
+    do {
+        printf(YELLOW "Generos (Action,Drama,...): " RESET);
+        fgets(nueva.genres, sizeof(nueva.genres), stdin);
+        nueva.genres[strcspn(nueva.genres, "\n")] = '\0';
+        if (strlen(nueva.genres) == 0)
+            printf(RED "Este campo no puede estar vacio.\n" RESET);
+    } while (strlen(nueva.genres) == 0);
 
     nueva.next_offset = -1; // dataProgram lo actualiza al insertar
 
     /* Flujo: copiar pelicula a shm, despertar a dataProgram y esperar confirmacion */
     shm->movie = nueva;
     shm->query.searchCriteria = ADD_MOVIE;
-    sem_post(&shm->sem_dp); // sem_post despierta a dataProgram
-    sem_wait(&shm->sem_ui); // sem_wait duerme a ui hasta recibir confirmacion
+    sem_post(&shm->sem_dp);
+    sem_wait(&shm->sem_ui);
 
     printf(GREEN "\nPelicula agregada exitosamente.\n" RESET);
 }
@@ -90,10 +115,15 @@ void mostrarResultado(Shared_Memory *shm) {
     printf(YELLOW "  Titulo:    " RESET "%s\n", shm->movie.primaryTitle);
     printf(YELLOW "  Original:  " RESET "%s\n", shm->movie.originalTitle);
     printf(YELLOW "  Adultos:   " RESET "%s\n", shm->movie.isAdult ? "Si" : "No");
-    printf(YELLOW "  Año:      " RESET "%d\n", shm->movie.startYear);
-    printf(YELLOW "  Duracion:  " RESET "%d min\n", shm->movie.runtimeMinutes);
+    printf(YELLOW "  Anio:      " RESET "%d\n", shm->movie.startYear);
+    if (shm->movie.runtimeMinutes == -1) {
+        printf(YELLOW "  Duracion:  " RESET "N/A\n");
+    } else {
+        printf(YELLOW "  Duracion:  " RESET "%d min\n", shm->movie.runtimeMinutes);
+    }
     printf(YELLOW "  Generos:   " RESET "%s\n", shm->movie.genres);
     printf(CYAN "╚═══════════════════════════════╝\n" RESET);
+    printf(YELLOW "  Tiempo de busqueda: " RESET "%.2f ms\n", shm->search_time_ms);
 }
 
 /* Busqueda simple por titulo — sin filtros */
@@ -112,9 +142,9 @@ void buscarPorTitulo(Shared_Memory *shm) {
     /* Llenar query sin filtros — dataProgram usara buscar_por_nombre */
     shm->query.searchCriteria = SEARCH;
     strcpy(shm->query.primaryTitle, titulo);
-    strcpy(shm->query.filterType,   "N");
+    strcpy(shm->query.filterType,  "");
     shm->query.filterYear = -1;
-    strcpy(shm->query.filterGenre,  "N");
+    strcpy(shm->query.filterGenre, "");
 
     /* Flujo: despertar a dataProgram y esperar resultado */
     sem_post(&shm->sem_dp);
@@ -139,15 +169,15 @@ void buscarConFiltros(Shared_Memory *shm) {
     }
 
     /* Pedir filtros opcionales — N para omitir */
-    printf(YELLOW "Tipo (movie/tvseries/short — N para omitir): " RESET);
+    printf(YELLOW "Tipo (movie/tvseries/short — Enter para omitir): " RESET);
     fgets(tipo, sizeof(tipo), stdin);
     tipo[strcspn(tipo, "\n")] = '\0';
 
-    printf(YELLOW "Anio de inicio (N para omitir): " RESET);
+    printf(YELLOW "Anio de inicio (Enter para omitir): " RESET);
     fgets(anio, sizeof(anio), stdin);
     anio[strcspn(anio, "\n")] = '\0';
 
-    printf(YELLOW "Genero (Action/Drama/... — N para omitir): " RESET);
+    printf(YELLOW "Genero (Action/Drama/... — Enter para omitir): " RESET);
     fgets(genero, sizeof(genero), stdin);
     genero[strcspn(genero, "\n")] = '\0';
 
@@ -155,20 +185,20 @@ void buscarConFiltros(Shared_Memory *shm) {
     shm->query.searchCriteria = SEARCH;
     strcpy(shm->query.primaryTitle, titulo);
 
-    if (strcmp(tipo, "N") == 0) {
-        strcpy(shm->query.filterType, "N");
+    if (strlen(tipo) == 0) {
+        strcpy(shm->query.filterType, "");
     } else {
         strcpy(shm->query.filterType, tipo);
     }
 
-    if (strcmp(anio, "N") == 0) {
+    if (strlen(anio) == 0) {
         shm->query.filterYear = -1;
     } else {
         shm->query.filterYear = atoi(anio);
     }
 
-    if (strcmp(genero, "N") == 0) {
-        strcpy(shm->query.filterGenre, "N");
+    if (strlen(genero) == 0) {
+        strcpy(shm->query.filterGenre, "");
     } else {
         strcpy(shm->query.filterGenre, genero);
     }
@@ -212,7 +242,7 @@ void mostrarIntro() {
     printf(YELLOW "\nInstrucciones:\n" RESET);
     printf("  - Opcion 1: busqueda solo por titulo\n");
     printf("  - Opcion 2: busqueda por titulo + filtros opcionales\n");
-    printf("  - En filtros, escribe N para omitir\n");
+    printf("  - En filtros, presiona Enter para omitir\n");
     printf("  - Si no se encuentra, puede agregar la pelicula/serie al dataset\n");
 }
 

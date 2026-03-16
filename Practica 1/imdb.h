@@ -8,7 +8,7 @@
 #define SIZE_TITLES  128
 #define SIZE_TYPE    32
 #define SIZE_GENRES  64
-#define HASH_SIZE 999  //Cantidad de espacio que tendra el array del hash
+#define HASH_SIZE 500009  //Cantidad de espacio que tendra el array del hash
 
 /* Clave de memoria compartida */
 #define SHM_KEY 0x494D4242
@@ -24,9 +24,9 @@ typedef enum {
 typedef struct {
     Criteria searchCriteria;
     char primaryTitle[SIZE_TITLES]; // Obligatorio
-    char filterType[SIZE_TYPE];     // "N" = sin filtro
+    char filterType[SIZE_TYPE];     // "" = sin filtro
     int  filterYear;                // -1 = sin filtro
-    char filterGenre[SIZE_GENRES];  // "N" = sin filtro
+    char filterGenre[SIZE_GENRES];  // "" = sin filtro
 } Query;
 
 /* Registro de una película del dataset */
@@ -43,29 +43,25 @@ typedef struct {
 
 /* Memoria compartida entre ui y dataProgram */
 typedef struct {
-    sem_t sem_dp;   // señal para dataProgram
-    sem_t sem_ui;   // señal para ui
+    sem_t sem_dp;                   // señal para dataProgram
+    sem_t sem_ui;                   // señal para ui
     Query query;
     Movie movie;
-    int   found;    // 1 = encontrado, 0 = NA
+    int   found;                    // 1 = encontrado, 0 = NA
+    double search_time_ms;          // tiempo de busqueda en ms
 } Shared_Memory;
-
-
 
 /* Prototipos de funciones */
 // Declaración de la tabla hash como un array global de long, donde cada posición almacena el offset del primer elemento en la cadena de colisiones
 extern long hash_table[HASH_SIZE];
 
-
 // Función para imprimir los detalles de una película
 void imprimir_pelicula( Movie pelicula);
-
 
 // Función para calcular el hash de una cadena de caracteres 
 unsigned int calcular_hash( char *str);
 //Inicializar la tabla hash con -1 para indicar que cada posición esta vacia
 void inicializar_hash_table();
-
 
 int leer_linea_tsv(FILE *archivo,  Movie *pelicula);
 // retorna 1 si leyó bien, 0 si línea malformada o fin de archivo

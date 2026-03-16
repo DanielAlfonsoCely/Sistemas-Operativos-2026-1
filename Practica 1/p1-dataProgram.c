@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/shm.h>
 #include <string.h>
+#include <time.h> 
 #include "imdb.h"
 
 /* Proceso principal de busqueda — crea la shm, espera queries de ui y responde */
@@ -44,11 +45,15 @@ int main() {
         switch (shm->query.searchCriteria) {
 
             case SEARCH: {
-                /* Sin filtros: usar buscar_por_nombre (mas eficiente)
+
+                struct timespec t_start, t_end;
+                clock_gettime(CLOCK_MONOTONIC, &t_start);
+
+                /* Sin filtros: usar buscar_por_nombre
                    Con filtros: armar struct Movie y usar buscar_por_filtros */
                 if (shm->query.filterYear == -1 &&
-                    strcmp(shm->query.filterType,  "N") == 0 &&
-                    strcmp(shm->query.filterGenre, "N") == 0) {
+                    strlen(shm->query.filterType)  == 0 &&
+                    strlen(shm->query.filterGenre) == 0) {
 
                     shm->movie = buscar_por_nombre(shm->query.primaryTitle, peliculas);
 
@@ -59,13 +64,17 @@ int main() {
                     strcpy(filtros.titleType,     shm->query.filterType);
                     filtros.startYear           = shm->query.filterYear;
                     strcpy(filtros.genres,        shm->query.filterGenre);
-                    filtros.isAdult             = -1; // no se filtra por estos campos
+                    // No se filtra por estos campos
+                    filtros.isAdult             = -1;
                     filtros.runtimeMinutes      = -1;
-                    strcpy(filtros.originalTitle, "N");
+                    strcpy(filtros.originalTitle, "");
 
                     shm->movie = buscar_por_filtros(filtros, peliculas);
                 }
 
+                clock_gettime(CLOCK_MONOTONIC, &t_end);
+                shm->search_time_ms = (t_end.tv_sec - t_start.tv_sec) * 1000.0 + (t_end.tv_nsec - t_start.tv_nsec) / 1e6;
+                
                 /* Indicar a ui si se encontro o no */
                 shm->found = (shm->movie.primaryTitle[0] != '\0') ? 1 : 0;
 
