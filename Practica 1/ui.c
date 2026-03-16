@@ -34,7 +34,7 @@ void agregarPelicula(Shared_Memory *shm) {
     } while (strlen(nueva.originalTitle) == 0);
 
     do {
-        printf(YELLOW "Tipo (movie/tvseries/short/...): " RESET);
+        printf(YELLOW "Tipo (movie/short/tvSeries/tvEpisode/tvMovie/tvMiniSeries/tvPilot/tvShort/tvSpecial/video/videoGame): " RESET);
         fgets(nueva.titleType, sizeof(nueva.titleType), stdin);
         nueva.titleType[strcspn(nueva.titleType, "\n")] = '\0';
         if (strlen(nueva.titleType) == 0)
@@ -168,8 +168,8 @@ void buscarConFiltros(Shared_Memory *shm) {
         return;
     }
 
-    /* Pedir filtros opcionales — N para omitir */
-    printf(YELLOW "Tipo (movie/tvseries/short — Enter para omitir): " RESET);
+    /* Pedir filtros opcionales — Enter para omitir */
+    printf(YELLOW "Tipo (movie/short/tvSeries/tvEpisode/tvMovie/tvMiniSeries/tvPilot/tvShort/tvSpecial/video/videoGame — Enter para omitir): " RESET);
     fgets(tipo, sizeof(tipo), stdin);
     tipo[strcspn(tipo, "\n")] = '\0';
 
