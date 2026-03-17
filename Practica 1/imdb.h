@@ -8,7 +8,7 @@
 #define SIZE_TITLES  128
 #define SIZE_TYPE    32
 #define SIZE_GENRES  64
-#define HASH_SIZE 500009  //Cantidad de espacio que tendra el array del hash
+#define HASH_SIZE 999  //Cantidad de espacio que tendra el array del hash
 
 /* Clave de memoria compartida */
 #define SHM_KEY 0x494D4242
