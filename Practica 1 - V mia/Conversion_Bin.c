@@ -55,20 +55,19 @@ int leer_linea_tsv(FILE *archivo, Movie *pelicula){
     pelicula->genres[63] = '\0';
         
     return 1; // Línea leída correctamente
-
 }
 
 // escribe la struct y actualiza el hash
 void escribir_pelicula_bin(Movie *pelicula, FILE *archivo_bin){
 
-    long offset = ftell(archivo_bin);
-        int indice = calcular_hash(pelicula->primaryTitle);
+    long offset = ftell(archivo_bin); // Obtener el offset actual del archivo, que será la posición donde se escribirá la nueva película
+    int indice = calcular_hash(pelicula->primaryTitle); // Calcular el índice del hash para la película utilizando su primaryTitle
 
-        pelicula->next_offset = hash_table[indice];  // apunta al anterior primero
-        hash_table[indice] = offset;                // hash apunta al nuevo
+    pelicula->next_offset = hash_table[indice];  // apunta al anterior primero
+    hash_table[indice] = offset;                // hash apunta al nuevo
 
-        fwrite(pelicula, sizeof(Movie), 1, archivo_bin);
-
+    fwrite(pelicula, sizeof(Movie), 1, archivo_bin);
+    
 }
 
 
@@ -110,14 +109,14 @@ void insertar_pelicula_en_binario(Movie pelicula, char *archivo_hash_bin){
         perror("Error al abrir el archivo binario para insertar la película");
         return;
     }
-
+    
     fseek(archivo_bin, 0, SEEK_END); // Mover el puntero al final del archivo para escribir la nueva película
     long offset = ftell(archivo_bin);
     
     // encadenar en el hash
     int indice = calcular_hash(pelicula.primaryTitle);
-    pelicula.next_offset = hash_table[indice];
-    hash_table[indice] = offset;
+    pelicula.next_offset = hash_table[indice]; // El nuevo offset apunta al anterior primero
+    hash_table[indice] = offset; // El hash apunta al nuevo offset
     
     // escribir
     fwrite(&pelicula, sizeof(Movie), 1, archivo_bin);

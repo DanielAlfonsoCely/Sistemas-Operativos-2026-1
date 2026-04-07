@@ -2,7 +2,7 @@ all: creation_bin dataProgram ui
 
 # Creacion del binario a partir del TSV y generacion de la tabla hash
 creation_bin: Crear_bin.c Hash.c Conversion_Bin.c
-	gcc Crear_bin.c Hash.c Conversion_Bin.c -o setup
+	gcc Crear_bin.c Hash.c Conversion_Bin.c -o creation_bin
 
 # Programa que carga la tabla hash en memoria compartida y espera por consultas
 dataProgram: Hash.c Conversion_Bin.c Busqueda.c p1-dataProgram.c

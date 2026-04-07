@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <sys/shm.h>
 #include <string.h>
-#include <time.h> 
+#include <linux/time.h>
 #include "imdb.h"
 
 /* Proceso principal de busqueda — crea la shm, espera queries de ui y responde */
