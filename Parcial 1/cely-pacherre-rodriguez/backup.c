@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
+#include <libgen.h>
 
 #define RESET     "\033[0m"
 #define AZUL      "\033[1;34m"
@@ -59,7 +60,7 @@ int main(int argc, char *argv[]) {
             perror("Error al leer el archivo");
             fprintf(stderr, RESET);
             return 1;
-        }
+        }   
 
         if (file_stat.st_mtime != initial_mtime) {
             printf(AMARILLO "Cambio detectado. Creando backup...\n" RESET);
@@ -68,10 +69,10 @@ int main(int argc, char *argv[]) {
             struct tm *t = localtime(&ahora);
             strftime(fecha, sizeof(fecha), "%Y%m%d_%H%M%S", t);
 
-            snprintf(comando, sizeof(comando), "cp %s /home/data/backup/%s_%s", argv[1], fecha, argv[1]);
-
+            snprintf(comando, sizeof(comando), "cp %s /home/data/backup/%s_%s", argv[1], fecha, basename(argv[1]));
+            
             if (system(comando) == 0) {
-                printf(VERDE "Backup creado: %s_%s\n" RESET, fecha, argv[1]);
+                printf(VERDE "Backup creado: %s_%s\n" RESET, fecha, basename(argv[1]));
             } else {
                 fprintf(stderr, ROJO);
                 perror("Error al crear el backup");
