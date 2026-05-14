@@ -45,11 +45,6 @@ int main() {
         exit(-1);
     }
 
-    
-    
-    // WARNING: send envía bytes, el programador debe verificar que se hayan enviado todos los bytes!!!
-
-
 
     /* Cargar indice hash desde archivo — los datos quedan en disco */
     cargar_hash_desde_binario("hash.bin");

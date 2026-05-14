@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <linux/time.h>
 
  
 #define PORT     3535
@@ -213,6 +214,7 @@ void *handle_client(void *arg) {
             case SEARCH: {
 
                 struct timespec t_start, t_end;
+                
                 clock_gettime(CLOCK_MONOTONIC, &t_start);
 
                 /* Mutex para proteger peliculas.bin */
