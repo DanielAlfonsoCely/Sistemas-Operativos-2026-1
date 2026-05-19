@@ -1,119 +1,152 @@
-## Especificaciones del Dataset
+# LEEME — Práctica 2: Sistema Cliente-Servidor IMDb
 
-### Descripción de los campos
+**Materia:** Sistemas Operativos  
+**Universidad Nacional de Colombia — Ingeniería de Sistemas**
 
-El dataset utilizado es `title.basics.tsv` de IMDB, que contiene información
-básica de títulos audiovisuales. Cada registro tiene los siguientes campos:
+---
 
-- **titleType**: tipo de título (movie, short, tvEpisode, tvMiniSeries, tvMovie,
-  tvPilot, tvSeries, tvShort, tvSpecial, video, videoGame)
-- **primaryTitle**: título principal usado en materiales promocionales
-- **originalTitle**: título en el idioma original de producción
-- **isAdult**: indica si el contenido es para adultos (0 = no, 1 = sí)
-- **startYear**: año de estreno o inicio de la serie
-- **runtimeMinutes**: duración en minutos
-- **genres**: géneros asociados, separados por coma (máximo 3)
+## Integrantes
 
-### Justificación de los criterios de búsqueda
+- Daniel Alfonso Cely Infante
+- Maria Catalina Rodriguez
+- Yerlan (Persona 3)
 
-Se implementaron dos criterios de búsqueda basados en los campos más relevantes
-para identificar un título:
+---
 
-1. **Búsqueda por título**: el campo `primaryTitle` es el identificador principal
-   de la tabla hash, lo que permite búsquedas en tiempo casi constante O(1).
+## Descripción
 
-2. **Búsqueda por título + filtros**: permite refinar resultados cuando varios
-   títulos comparten el mismo nombre. Los filtros de tipo, año y género cubren
-   los casos de uso más comunes — por ejemplo, distinguir entre una película y
-   una serie del mismo nombre, o encontrar una versión específica por año.
+Sistema cliente-servidor que permite buscar y agregar películas y series de la
+base de datos IMDb. El servidor gestiona el archivo binario en disco y atiende
+hasta 32 clientes simultáneos mediante hilos (pthreads). El cliente presenta un
+menú interactivo al usuario y se comunica con el servidor a través de sockets TCP.
 
-### Rangos de valores válidos
+---
 
-| Campo | Valores válidos |
+## Archivos fuente
+
+| Archivo | Descripción |
 |---|---|
-| primaryTitle | String no vacío, máximo 128 caracteres |
-| titleType | movie, short, tvEpisode, tvMiniSeries, tvMovie, tvPilot, tvSeries, tvShort, tvSpecial, video, videoGame |
-| startYear | Entero positivo |
-| genres | String no vacío, máximo 64 caracteres (ej: Action,Drama,Thriller) |
-| runtimeMinutes | Entero positivo, Enter si no aplica |
-| isAdult | 0 o 1 |
+| `p2-server.c` | Servidor: sockets, hilos, búsqueda, log |
+| `p2-client.c` | Cliente: menú interactivo, envío y recepción de queries |
+| `imdb.h` | Estructuras compartidas: `Movie`, `Query`, `Response`, `Criteria` |
+| `Hash.c` | Tabla hash en disco: inicializar, calcular, guardar, cargar |
+| `Busqueda.c` | Búsqueda por nombre y por filtros sobre `peliculas.bin` |
+| `Conversion_Bin.c` | Conversión del TSV a binario e inserción de nuevas películas |
+| `Crear_bin.c` | Programa auxiliar para generar `peliculas.bin` y `hash.bin` |
+| `Makefile` | Compilación de todos los ejecutables |
 
-### Ejemplos de uso
+---
 
-**Búsqueda simple por título:**
-```
-Opcion: 1
-Ingrese el titulo que desea buscar: Inception
+## Requisitos
 
-╔══════════ Resultado ══════════╗
-  Tipo:      movie
-  Titulo:    Inception
-  Original:  Inception
-  Adultos:   No
-  Anio:      2010
-  Duracion:  148 min
-  Generos:   Action,Adventure,Sci-Fi
-╚═══════════════════════════════╝
-  Tiempo de busqueda: 0.42 ms
-```
+- Sistema operativo Linux (probado en Debian)
+- GCC
+- Dataset `title.basics.tsv` de IMDb en la misma carpeta (solo para la conversión inicial)
 
-**Búsqueda con filtros:**
-```
-Opcion: 2
-Ingrese el titulo: The Office
-Tipo: tvSeries
-Anio de inicio: 2005
-Genero: Enter (omitir)
+---
 
-╔══════════ Resultado ══════════╗
-  Tipo:      tvSeries
-  Titulo:    The Office
-  Original:  The Office
-  Adultos:   No
-  Anio:      2005
-  Duracion:  N/A
-  Generos:   Comedy
-╚═══════════════════════════════╝
-  Tiempo de busqueda: 0.38 ms
+## Compilación
+
+```bash
+make
 ```
 
-**Título no encontrado:**
+Esto genera tres ejecutables: `creation_bin`, `p2-server` y `p2-client`.
+
+---
+
+## Ejecución
+
+### Paso 1 — Generar los archivos binarios (solo la primera vez)
+
+```bash
+./creation_bin
 ```
-Opcion: 1
-Ingrese el titulo que desea buscar: Mi Pelicula
 
-NA - Pelicula no encontrada.
-Desea agregar esta pelicula? (S/N): S
+Esto lee `title.basics.tsv` y genera:
+- `peliculas.bin` — registros de películas serializados en binario
+- `hash.bin` — tabla hash de offsets para búsqueda rápida
+
+Este paso puede tardar varios minutos dependiendo del tamaño del dataset (~12 millones de registros).
+
+### Paso 2 — Iniciar el servidor (Terminal 1)
+
+```bash
+./p2-server
 ```
-## Adaptaciones realizadas
 
-### Estructura de indexación
+El servidor no muestra ningún menú. Queda escuchando en el puerto **3535** y registra
+todas las operaciones en `server.log`.
 
-Inicialmente se planteó implementar la tabla hash con listas enlazadas en memoria RAM,
-donde cada nodo almacenaba el offset y el título. Esta aproximación fue descartada porque
-con 12 millones de registros cada nodo ocupaba ~144 bytes, resultando en aproximadamente
-1.7 GB en RAM — lo cual viola el límite de 10 MB establecido en las especificaciones.
+### Paso 3 — Iniciar el cliente (Terminal 2)
 
-La solución adoptada fue eliminar completamente las listas enlazadas en memoria y trasladar
-el encadenamiento de colisiones al archivo binario. La tabla hash en RAM es simplemente un
-arreglo de 999 `long` (≈8 KB) donde cada posición almacena el offset del primer registro
-de ese bucket. Las colisiones se resuelven mediante el campo `next_offset` dentro de cada
-struct `Movie`, que apunta al siguiente registro con el mismo hash directamente en
-`peliculas.bin`.
+```bash
+./p2-client
+```
 
-### Archivos generados
+El cliente se conecta automáticamente al servidor en `127.0.0.1:3535` y muestra el menú.
 
-El sistema genera dos archivos binarios a partir del TSV original:
+---
 
-- `peliculas.bin`: contiene todos los registros `Movie` serializados en binario. Las
-  colisiones del hash se encadenan dentro de este archivo mediante `next_offset`.
-- `hash.bin`: contiene el arreglo de 999 offsets serializado. Se carga a RAM al iniciar
-  `dataProgram` y se actualiza cada vez que se inserta una nueva película.
+## Uso del cliente
 
-El TSV original no es necesario después de la conversión.
+Al iniciar, el cliente muestra el siguiente menú:
 
-### Uso de memoria dinámica
+```
+╔════════════════════════════════════╗
+║         IMDB Movie Search          ║
+╚════════════════════════════════════╝
 
-Durante la conversión del TSV, cada registro se aloja dinámicamente con `malloc`, se
-procesa y se libera con `free` inmediatamente, manteniendo el uso de RAM mínimo durante
-la conversión.
+  1. Buscar por titulo
+  2. Buscar por titulo + filtros
+  3. Salir
+```
+
+**Opción 1 — Buscar por título:**  
+Ingrese el título exacto de la película o serie. El servidor responde con el
+primer registro que coincida.
+
+**Opción 2 — Buscar por título + filtros:**  
+Ingrese el título y opcionalmente filtre por tipo, año de inicio y género.
+Presione Enter para omitir cualquier filtro.
+
+**Opción 3 — Salir:**  
+Cierra la conexión con el servidor y termina el programa.
+
+Después de cada operación se solicita presionar cualquier tecla para volver al menú.
+
+---
+
+## Formato del log
+
+El servidor registra cada operación en `server.log` con el siguiente formato:
+
+```
+[20260509T143022] Cliente [127.0.0.1] [SEARCH - Inception]
+[20260509T143022] Cliente [127.0.0.1] [SEARCH_FILTER - The Office - tvSeries/2005]
+[20260509T143022] Cliente [127.0.0.1] [ADD_MOVIE - Mi Pelicula]
+```
+
+---
+
+## Protocolo de comunicación
+
+El cliente envía una estructura `Response` con la `Query` rellena al servidor.
+El servidor procesa la solicitud, completa los campos `movie`, `found` y
+`search_time_ms` de la misma estructura y la devuelve al cliente.
+
+| Campo `searchCriteria` | Acción |
+|---|---|
+| `SEARCH` | Búsqueda por nombre o por filtros |
+| `ADD_MOVIE` | Inserción de nueva película |
+| `EXIT` | Cierre de conexión |
+
+---
+
+## Limpieza
+
+```bash
+make clean
+```
+
+Elimina los ejecutables compilados. Los archivos `.bin` y `server.log` no se eliminan.
