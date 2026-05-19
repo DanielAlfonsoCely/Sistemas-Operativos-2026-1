@@ -327,14 +327,21 @@ int main() {
         opcion = atoi(input);
 
         switch (opcion) {
-            case 1: buscarPorTitulo(fd ,&response);  break;
-            case 2: buscarConFiltros(fd, &response); break;
-            case 3: salir(fd, &response);            break;
+            case 1: {
+                buscarPorTitulo(fd ,&response);
+                 printf(YELLOW "\nPresiona Enter para continuar..." RESET);
+                esperarTecla();
+            };  break;
+            case 2: {
+                buscarConFiltros(fd, &response);
+                printf(YELLOW "\nPresiona Enter para continuar..." RESET);
+                esperarTecla();
+            } break;
+            case 3: salir(fd, &response);break;
             default:
                 printf(RED "Opcion invalida.\n" RESET);
         }
-        printf(YELLOW "\nPresione cualquier tecla para continuar..." RESET);
-        esperarTecla();
+        
     } while (opcion != 3);
 
 
