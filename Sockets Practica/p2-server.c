@@ -8,7 +8,6 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <unistd.h>
-#include <linux/time.h>
 
  
 #define PORT     3535
@@ -23,9 +22,6 @@ pthread_mutex_t mutex_archivo;   // protege peliculas.bin al buscar/insertar
 pthread_mutex_t mutex_log;       // protege server.log
 pthread_mutex_t mutex_clientes;  // protege num_clientes
 int num_clientes = 0;
-
-/* Prototipo necesario porque handle_client se define después de main */
-void *handle_client(void *arg);
 
 
 
@@ -186,6 +182,7 @@ void *handle_client(void *arg) {
     // Se pueden recibir queries, procesarlas y enviar respuestas
     // Este código se ejecutará en un proceso o hilo separado para cada cliente
 
+    
     /* Obtener IP del cliente para el log */
     struct sockaddr_in addr;
     socklen_t len = sizeof(addr);

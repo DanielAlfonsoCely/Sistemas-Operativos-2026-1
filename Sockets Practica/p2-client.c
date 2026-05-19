@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <termios.h>
 
 /* Colores ANSI para la terminal */
 #define RESET   "\033[0m"
@@ -99,7 +100,7 @@ void agregarPelicula(int fd , Response *response) {
             printf(RED "Este campo no puede estar vacio.\n" RESET);
     } while (strlen(nueva.genres) == 0);
 
-    nueva.next_offset = -1; // dataProgram lo actualiza al insertar
+    nueva.next_offset = -1; // Server lo actualiza al insertar
 
     response->movie = nueva;
     response->query.searchCriteria = ADD_MOVIE;
@@ -272,6 +273,18 @@ void mostrarIntro() {
     printf("  - Si no se encuentra, puede agregar la pelicula/serie al dataset\n");
 }
 
+
+void esperarTecla() {
+    struct termios old, new;
+    tcgetattr(STDIN_FILENO, &old);       // guardar configuracion actual
+    new = old;
+    new.c_lflag &= ~(ICANON | ECHO);    // desactivar buffer y echo
+    tcsetattr(STDIN_FILENO, TCSANOW, &new);
+    getchar();                           // captura cualquier tecla
+    tcsetattr(STDIN_FILENO, TCSANOW, &old); // restaurar
+}
+
+
 int main() {
     
     int fd;
@@ -294,6 +307,7 @@ int main() {
 
     r = connect(fd, (struct sockaddr *)&server, addrlen);
 
+    
     if(r == -1){
         perror("Error en connect");
         exit(-1);
@@ -319,8 +333,8 @@ int main() {
             default:
                 printf(RED "Opcion invalida.\n" RESET);
         }
-        printf(YELLOW "\nPresione Enter para continuar..." RESET);
-        getchar();
+        printf(YELLOW "\nPresione cualquier tecla para continuar..." RESET);
+        esperarTecla();
     } while (opcion != 3);
 
 

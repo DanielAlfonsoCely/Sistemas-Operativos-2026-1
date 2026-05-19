@@ -75,6 +75,10 @@ void guardar_hash_en_binario( char *archivo_bin);
 void cargar_hash_desde_binario( char *archivo_bin);
 
 
+/* Prototipo necesario porque handle_client se define después de main */
+void *handle_client(void *arg);
+
+
 // Función para buscar una película por su título principal utilizando la tabla hash
 Movie buscar_por_nombre(char *nombre , FILE *archivo_bin);
 // Función para buscar una película por múltiples filtros, utilizando la tabla hash para optimizar la búsqueda
