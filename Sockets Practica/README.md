@@ -8,8 +8,8 @@
 ## Integrantes
 
 - Daniel Alfonso Cely Infante
-- Maria Catalina Rodriguez
-- Yerlan (Persona 3)
+- Maria Catalina Rodriguez Cardona
+- Yeral Francesco Pacherre Trujillo
 
 ---
 
