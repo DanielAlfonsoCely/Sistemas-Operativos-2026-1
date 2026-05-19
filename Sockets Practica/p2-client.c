@@ -329,12 +329,12 @@ int main() {
         switch (opcion) {
             case 1: {
                 buscarPorTitulo(fd ,&response);
-                 printf(YELLOW "\nPresiona Enter para continuar..." RESET);
+                 printf(YELLOW "\nPresiona cualquier tecla para continuar..." RESET);
                 esperarTecla();
             };  break;
             case 2: {
                 buscarConFiltros(fd, &response);
-                printf(YELLOW "\nPresiona Enter para continuar..." RESET);
+                printf(YELLOW "\nPresiona cualquier tecla para continuar..." RESET);
                 esperarTecla();
             } break;
             case 3: salir(fd, &response);break;
